@@ -74,6 +74,11 @@ package FirebaseREST.src
 			return _registered;
 		}
 		
+		public function get accessToken():String 
+		{
+			return _accessToken;
+		}
+		
 	}
 
 }

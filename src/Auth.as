@@ -1,6 +1,6 @@
 package FirebaseREST.src 
 {
-	import FirebaseREST.src.events.FBAuthEvent;
+	import FirebaseREST.src.events.AuthEvent;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.IOErrorEvent;
@@ -81,7 +81,7 @@ package FirebaseREST.src
 		{
 			e.target.removeEventListener(Event.COMPLETE, registerComplete);
 			
-			dispatchEvent(new FBAuthEvent(FBAuthEvent.REGISTER_SUCCESS, e.currentTarget.data));
+			dispatchEvent(new AuthEvent(AuthEvent.REGISTER_SUCCESS, e.currentTarget.data));
 			_session = new Session(JSON.parse(e.currentTarget.data));
 			setupSessionTimer();
 		}
@@ -128,7 +128,7 @@ package FirebaseREST.src
 		private function refreshTokenLoaded(e:Event):void 
 		{
 			_session.appendAuth(JSON.parse(e.currentTarget.data));
-			dispatchEvent(new FBAuthEvent(FBAuthEvent.LOGIN_SUCCES, "LOGIN_SUCCESS: \n" + e.currentTarget.data));
+			dispatchEvent(new AuthEvent(AuthEvent.LOGIN_SUCCES, "LOGIN_SUCCESS: \n" + e.currentTarget.data));
 		}
 		
 		
@@ -156,7 +156,7 @@ package FirebaseREST.src
 		private function resetPasswordComplete(e:Event):void 
 		{
 			e.target.removeEventListener(Event.COMPLETE, resetPasswordComplete);
-			dispatchEvent(new FBAuthEvent(FBAuthEvent.OPERATION_COMPLETE, "password"));
+			dispatchEvent(new AuthEvent(AuthEvent.OPERATION_COMPLETE, "password"));
 		}
 		
 		
