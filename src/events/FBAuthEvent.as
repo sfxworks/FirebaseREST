@@ -11,6 +11,8 @@ package FirebaseREST.src.events
 		private var _message:String;
 		
 		public static const LOGIN_SUCCES:String = "fbloginsuccess";
+		public static const REGISTER_SUCCESS:String = "fbregistersuccess";
+		public static const OPERATION_COMPLETE:String = "fboperationcomplete";
 		
 		public function FBAuthEvent(type:String, message:String, bubbles:Boolean=false, cancelable:Boolean=false) 
 		{ 

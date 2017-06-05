@@ -6,21 +6,32 @@ package FirebaseREST.src
 	 */
 	public class Session 
 	{
-		private var _kind:String;
 		private var _idToken:String;
 		private var _email:String;
 		private var _refreshToken:String;
 		private var _expiration:int;
 		private var _localId:String;
+		private var _accessToken:String;
+		private var _userID:String;
+		private var _displayName:String;
+		private var _registered:Boolean;
 		
 		public function Session(newSession:Object) 
 		{
+			_refreshToken = newSession.refreshToken;
+			_email = newSession.email;
+			_displayName = newSession.displayName;
+			_expiration = newSession.expires_in;
+			_idToken = newSession.id_token;
+			_registered = newSession.registered;
 			
 		}
 		
-		public function get kind():String 
+		public function appendAuth(authReturn:Object):void
 		{
-			return _kind;
+			_accessToken = authReturn.access_token;
+			_expiration = parseInt(authReturn.expires_in);
+			_userID = authReturn.user_id;
 		}
 		
 		public function get idToken():String 
@@ -46,6 +57,21 @@ package FirebaseREST.src
 		public function get localId():String 
 		{
 			return _localId;
+		}
+		
+		public function get userID():String 
+		{
+			return _userID;
+		}
+		
+		public function get displayName():String 
+		{
+			return _displayName;
+		}
+		
+		public function get registered():Boolean 
+		{
+			return _registered;
 		}
 		
 	}

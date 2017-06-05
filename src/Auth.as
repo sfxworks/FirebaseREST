@@ -4,10 +4,12 @@ package FirebaseREST.src
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.IOErrorEvent;
+	import flash.events.TimerEvent;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.net.URLRequestHeader;
 	import flash.net.URLRequestMethod;
+	import flash.utils.Timer;
 	/**
 	 * ...
 	 * @author Samuel Walker
@@ -17,6 +19,7 @@ package FirebaseREST.src
 		private var _session:Session;
 		
 		private var apiKey:String;
+		private var accessToken:String;
 		
 		//Used for verification of email and reseting password
 		public static const GAPIURL:String = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/";
@@ -54,14 +57,114 @@ package FirebaseREST.src
 			loader.load(request);	
 		}
 		
+		public function register(email:String, password:String):void
+		{
+			var myObject:Object = new Object();
+			myObject.email = email;
+			myObject.password = password;
+			myObject.returnSecureToken = true;
+			
+			var header:URLRequestHeader = new URLRequestHeader("Content-Type", "application/json");
+			
+			var request:URLRequest = new URLRequest(GAPIURL + SIGN_USER_UP + "?key="+apiKey);
+			request.method = URLRequestMethod.POST;
+			request.data = JSON.stringify(myObject);
+			request.requestHeaders.push(header);
+			
+			var loader:URLLoader = new URLLoader();	
+			loader.addEventListener(IOErrorEvent.IO_ERROR, errorHandler);
+			loader.addEventListener(flash.events.Event.COMPLETE, registerComplete);
+			loader.load(request);
+		}
+		
+		private function registerComplete(e:Event):void 
+		{
+			e.target.removeEventListener(Event.COMPLETE, registerComplete);
+			
+			dispatchEvent(new FBAuthEvent(FBAuthEvent.REGISTER_SUCCESS, e.currentTarget.data));
+			_session = new Session(JSON.parse(e.currentTarget.data));
+			setupSessionTimer();
+		}
+		
 		private function signInComplete(e:Event):void 
 		{
+			e.target.removeEventListener(Event.COMPLETE, signInComplete);
+			
 			_session = new Session(JSON.parse(e.currentTarget.data));
+			setupSessionTimer();
+		}
+		
+		private function setupSessionTimer():void
+		{
+			var t:Timer = new Timer(_session.expiration * 1000);
+			t.addEventListener(TimerEvent.TIMER, refreshAccessToken);
+			refreshAccessToken();
+		}
+		
+		private function sessionTimer(e:TimerEvent):void 
+		{
+			refreshAccessToken();
+		}
+		
+		private function refreshAccessToken():void
+		{
+			var header:URLRequestHeader = new URLRequestHeader("Content-Type", "application/json");
+			
+			var myObject:Object = new Object();
+			myObject.grant_type = "refresh_token";
+			myObject.refresh_token = _session.refreshToken;			
+			
+			var request:URLRequest = new URLRequest(TOKEN_REFRESH + "?key="+apiKey);
+			request.method = URLRequestMethod.POST;
+			request.data = JSON.stringify(myObject);
+			request.requestHeaders.push(header);
+			
+			var loader:URLLoader = new URLLoader();
+			loader.addEventListener(Event.COMPLETE, refreshTokenLoaded);
+			loader.addEventListener(IOErrorEvent.IO_ERROR, errorHandler);
+			loader.load(request);	
+		}
+		
+		private function refreshTokenLoaded(e:Event):void 
+		{
+			_session.appendAuth(JSON.parse(e.currentTarget.data));
 			dispatchEvent(new FBAuthEvent(FBAuthEvent.LOGIN_SUCCES, "LOGIN_SUCCESS: \n" + e.currentTarget.data));
 		}
 		
+		
+		//Operations:
+		
+		public function resetPassword(email:String):void
+		{
+			var myObject:Object = new Object();
+			myObject.email = email;
+			myObject.requestType = "PASSWORD_RESET";
+			
+			var header:URLRequestHeader = new URLRequestHeader("Content-Type", "application/json");
+			
+			var request:URLRequest = new URLRequest(GAPIURL + OOB_CC + "?key="+apiKey);
+			request.method = URLRequestMethod.POST;
+			request.data = JSON.stringify(myObject);
+			request.requestHeaders.push(header);
+			
+			var loader:URLLoader = new URLLoader();	
+			loader.addEventListener(IOErrorEvent.IO_ERROR, errorHandler);
+			loader.addEventListener(Event.COMPLETE, resetPasswordComplete);
+			loader.load(request);
+		}
+		
+		private function resetPasswordComplete(e:Event):void 
+		{
+			e.target.removeEventListener(Event.COMPLETE, resetPasswordComplete);
+			dispatchEvent(new FBAuthEvent(FBAuthEvent.OPERATION_COMPLETE, "password"));
+		}
+		
+		
+		
+		
 		private function errorHandler(e:IOErrorEvent):void 
 		{
+			e.target.removeEventListener(IOErrorEvent.IO_ERROR, errorHandler);
 			dispatchEvent(e);
 		}
 		
