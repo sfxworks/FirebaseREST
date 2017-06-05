@@ -14,6 +14,7 @@ package FirebaseREST.src
 		
 		private var _auth:Auth;
 		private var _database:Database;
+		private var _storage:Storage;
 		
 		public function Core() 
 		{
@@ -25,15 +26,18 @@ package FirebaseREST.src
 			_firebaseAPIKey = firebaseAPIKey;
 			_projectID = _projectID;
 			
+			_database = new Database(projectID);
+			_storage = new Storage(projectID, "");
 			_auth = new Auth(firebaseAPIKey);
 			_auth.addEventListener(AuthEvent.AUTH_CHANGE, handleAuthChange);
-			_database = new Database(projectID);
+			
 		}
 		
 		private function handleAuthChange(e:AuthEvent):void 
 		{
 			//Pass to database, storage, others..
 			_database.authChange(_auth.session.accessToken);
+			_storage.authChange(_auth.session.accessToken);
 		}
 		
 		
