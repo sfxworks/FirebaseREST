@@ -19,7 +19,7 @@ package FirebaseREST.src
 		private var authToken:String;
 		private var databaseURL:String;
 		
-		public static const FIREBASE_SERVER_TIME = {".sv": "timestamp"};
+		public static const FIREBASE_SERVER_TIME:Object = {".sv": "timestamp"};
 		
 		
 		public function Database(projectID:String)
@@ -64,7 +64,7 @@ package FirebaseREST.src
 			l.load(rq);
 		}
 		
-		public function update(node:String, data:Object, auth:Boolean = false)
+		public function update(node:String, data:Object, auth:Boolean = false):void
 		{
 		    var header:URLRequestHeader = new URLRequestHeader("X-HTTP-Method-Override", "PATCH");
 			
