@@ -1,6 +1,6 @@
-package FirebaseREST.src 
+package net.sfxworks.firebaseREST 
 {
-	import FirebaseREST.src.events.StorageEvent;
+	import net.sfxworks.firebaseREST.events.StorageEvent;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.IOErrorEvent;
@@ -36,10 +36,10 @@ package FirebaseREST.src
 		}
 		
 		//Populated file reference.
-		public function upload(fileReference:FileReference, contentType:String, location:String, auth:Boolean = false);
+		public function upload(fileReference:FileReference, contentType:String, location:String, auth:Boolean = false):void
 		{
 			var rq:URLRequest = new URLRequest(storageURL + location + fileReference.name);
-			rq.method = URLRequest.POST;
+			rq.method = URLRequestMethod.POST;
 			rq.data = fileReference.data;
 			rq.contentType = contentType;
 			

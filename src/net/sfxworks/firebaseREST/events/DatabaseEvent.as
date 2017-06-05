@@ -1,4 +1,4 @@
-package FirebaseREST.src.events 
+package net.sfxworks.firebaseREST.events 
 {
 	import flash.events.Event;
 	

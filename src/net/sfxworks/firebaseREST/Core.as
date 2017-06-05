@@ -1,6 +1,7 @@
-package FirebaseREST.src 
+package net.sfxworks.firebaseREST 
 {
-	import FirebaseREST.src.events.AuthEvent;
+	import net.sfxworks.firebaseREST.Auth;
+	import net.sfxworks.firebaseREST.events.AuthEvent;
 
 	/**
 	 * ...

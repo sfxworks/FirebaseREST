@@ -1,4 +1,4 @@
-package FirebaseREST.src 
+package net.sfxworks.firebaseREST 
 {
 	/**
 	 * ...
