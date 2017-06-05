@@ -8,7 +8,6 @@ package net.sfxworks.firebaseREST
 	import flash.net.URLRequest;
 	import flash.net.URLRequestHeader;
 	import flash.net.URLRequestMethod;
-	import mx.events.Request;
 	/**
 	 * ...
 	 * @author Samuel Walker

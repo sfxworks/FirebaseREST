@@ -56,7 +56,7 @@ package net.sfxworks.firebaseREST
 		}
 		
 		//Full path is a full path and a name. Ex: path/to/file.extension
-		public function deleteFile(fullPath:String, auth:Boolean = false)
+		public function deleteFile(fullPath:String, auth:Boolean = false):void
 		{
 			var header:URLRequestHeader = new URLRequestHeader("X-HTTP-Method-Override", "DELETE");
 			
@@ -68,7 +68,6 @@ package net.sfxworks.firebaseREST
 				var header2:URLRequestHeader = new URLRequestHeader("Authorization", "Bearer " + authToken);
 				rq.requestHeaders.push(header2);
 			}
-			
 			var l:URLLoader = new URLLoader();
 				l.addEventListener(Event.COMPLETE, deleteComplete);
 				l.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
