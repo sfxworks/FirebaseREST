@@ -31,14 +31,17 @@ package net.sfxworks.firebaseREST
 		public static const TOKEN_REFRESH:String = "https://securetoken.googleapis.com/v1/token";
 		public static const VERIFY_PASSWORD:String = "verifyPassword";
 		
+		private var loggedIn:Boolean;
 		
 		public function Auth(apiKey:String) 
 		{
 			this.apiKey = apiKey;
+			loggedIn = false;
 		}
 		
 		public function email_login(email:String, password:String):void
 		{
+			loggedIn = false;
 			var myObject:Object = new Object();
 			myObject.email = email;
 			myObject.password = password;
@@ -59,6 +62,7 @@ package net.sfxworks.firebaseREST
 		
 		public function register(email:String, password:String):void
 		{
+			loggedIn = false;
 			var myObject:Object = new Object();
 			myObject.email = email;
 			myObject.password = password;
@@ -128,7 +132,12 @@ package net.sfxworks.firebaseREST
 		private function refreshTokenLoaded(e:Event):void 
 		{
 			_session.appendAuth(JSON.parse(e.currentTarget.data));
-			dispatchEvent(new AuthEvent(AuthEvent.LOGIN_SUCCES, "LOGIN_SUCCESS: \n" + e.currentTarget.data));
+			dispatchEvent(new AuthEvent(AuthEvent.AUTH_CHANGE, ""));
+			if (loggedIn == false)
+			{
+				dispatchEvent(new AuthEvent(AuthEvent.LOGIN_SUCCES, "LOGIN_SUCCESS: \n" + e.currentTarget.data));
+				loggedIn = true;
+			}
 		}
 		
 		
