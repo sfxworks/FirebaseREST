@@ -72,7 +72,12 @@ package net.sfxworks.firebaseREST
 			rq.method = URLRequestMethod.POST;
 			rq.requestHeaders.push(header);
 			
-			var l:URLLoader = new URLLoader(rq);
+			if (auth)
+			{
+				rq.url += "?auth=" + authToken;
+			}
+			
+			var l:URLLoader = new URLLoader();
 			l.addEventListener(Event.COMPLETE, updateComplete);
 			l.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
 			l.load(rq);
@@ -85,7 +90,7 @@ package net.sfxworks.firebaseREST
 			var rq:URLRequest = new URLRequest(databaseURL + node + ".json");
 			rq.method = URLRequestMethod.POST;
 			rq.requestHeaders.push(header);
-			
+				
 			var l:URLLoader = new URLLoader();
 			l.addEventListener(Event.COMPLETE, entryDeleted);
 			l.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);

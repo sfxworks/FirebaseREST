@@ -31,12 +31,13 @@ package net.sfxworks.firebaseREST
 			_storage = new Storage(projectID, "");
 			_auth = new Auth(firebaseAPIKey);
 			_auth.addEventListener(AuthEvent.AUTH_CHANGE, handleAuthChange);
-			
+			trace("Core init.");
 		}
 		
 		private function handleAuthChange(e:AuthEvent):void 
 		{
 			//Pass to database, storage, others..
+			trace("Auth changed.");
 			_database.authChange(_auth.session.accessToken);
 			_storage.authChange(_auth.session.accessToken);
 		}
