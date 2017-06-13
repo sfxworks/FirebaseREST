@@ -36,9 +36,18 @@ package net.sfxworks.firebaseREST
 		}
 		
 		//Populated file reference.
-		public function upload(fileReference:FileReference, contentType:String, location:String, auth:Boolean = false):void
+		public function upload(fileReference:FileReference, contentType:String, location:String, name:String=null, auth:Boolean = false):void
 		{
-			var rq:URLRequest = new URLRequest(storageURL + location + fileReference.name);
+			var rqStr:String = new String();
+			if (name == null)
+			{
+				rqStr = storageURL + location + fileReference.name;
+			}
+			else
+			{
+				rqStr = storageURL + location + name;
+			}
+			var rq:URLRequest = new URLRequest(rqStr);
 			rq.method = URLRequestMethod.POST;
 			rq.data = fileReference.data;
 			rq.contentType = contentType;
@@ -75,7 +84,7 @@ package net.sfxworks.firebaseREST
 		}
 		
 		//Attach event listeners to return value for progress and complete events.
-		private function downloadFile(fullPath:String, downloadTokens:String=null):URLLoader
+		public function downloadFile(fullPath:String, downloadTokens:String=null):URLLoader
 		{
 			var rq:URLRequest = new URLRequest(storageURL + fullPath + "?alt=media");
 			if (downloadTokens != null)
