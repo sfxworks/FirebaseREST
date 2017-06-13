@@ -53,6 +53,11 @@ package net.sfxworks.firebaseREST
 			return _database;
 		}
 		
+		public function get storage():Storage 
+		{
+			return _storage;
+		}
+		
 	}
 
 }
