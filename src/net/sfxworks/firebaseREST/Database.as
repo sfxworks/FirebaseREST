@@ -1,5 +1,6 @@
 package net.sfxworks.firebaseREST 
 {
+	import flash.net.URLStream;
 	import net.sfxworks.firebaseREST.events.DatabaseEvent;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -8,6 +9,7 @@ package net.sfxworks.firebaseREST
 	import flash.net.URLRequest;
 	import flash.net.URLRequestHeader;
 	import flash.net.URLRequestMethod;
+
 	/**
 	 * ...
 	 * @author Samuel Walker
@@ -61,6 +63,23 @@ package net.sfxworks.firebaseREST
 			l.addEventListener(Event.COMPLETE, dataSent);
 			l.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
 			l.load(rq);
+		}
+		
+		public function readRealTime(node:String, auth:Boolean = false):URLStream
+		{
+			var header:URLRequestHeader = new URLRequestHeader("Accept", "text/event-stream");
+			
+			var rq:URLRequest = new URLRequest(databaseURL + node + ".json");
+			rq.requestHeaders.push(header);
+			
+			if (auth)
+			{
+				rq.url += "?auth=" + authToken;
+			}
+			
+			var uRLStream:URLStream = new URLStream();
+			uRLStream.load(rq);
+			return uRLStream;
 		}
 		
 		public function update(node:String, data:Object, auth:Boolean = false):void
