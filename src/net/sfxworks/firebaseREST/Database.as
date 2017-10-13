@@ -1,5 +1,6 @@
 package net.sfxworks.firebaseREST 
 {
+	import flash.events.ProgressEvent;
 	import flash.net.URLStream;
 	import net.sfxworks.firebaseREST.events.DatabaseEvent;
 	import flash.events.Event;
@@ -21,12 +22,24 @@ package net.sfxworks.firebaseREST
 		private var databaseURL:String;
 		
 		public static const FIREBASE_SERVER_TIME:Object = {".sv": "timestamp"};
+		private static const PROGRESS_PUT_IDENTIFIER:String = "event: put\ndata: ";
 		
+		private var urlStreams:Vector.<URLStream>;
+		private var eventTypes:Vector.<String>;
+		private var streamParts:Vector.<String>;
+		private var nodePaths:Vector.<String>;
+		
+		private var partCounter:int = 0;
 		
 		public function Database(projectID:String)
 		{
 			this.projectID = projectID;
 			databaseURL = "https://" + projectID + ".firebaseio.com/";
+			
+			urlStreams = new Vector.<URLStream>();
+			streamParts = new Vector.<String>();
+			eventTypes = new Vector.<String>();
+			nodePaths = new Vector.<String>();
 		}
 		
 		public function authChange(str:String):void
@@ -48,6 +61,30 @@ package net.sfxworks.firebaseREST
 			l.load(rq);
 		}
 		
+		public function once(node:String, callback:Function, auth:Boolean = false):void
+		{
+			function dataReadOnce(e:Event):void 
+			{
+				l.removeEventListener(Event.COMPLETE, dataReadOnce);
+				l.removeEventListener(IOErrorEvent.IO_ERROR, handleIOError);
+				callback(JSON.parse(e.target.data));
+			}
+			var rq:URLRequest = new URLRequest(databaseURL + node + ".json");
+			if (auth)
+			{
+				rq.url += "?auth=" + authToken;
+			}
+			var l:URLLoader = new URLLoader();
+			l.addEventListener(Event.COMPLETE, dataReadOnce);
+			l.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
+			
+			l.load(rq);
+			
+			
+		}
+		
+		
+		
 		public function write(node:String, data:Object, auth:Boolean = false):void
 		{
 			var rq:URLRequest = new URLRequest(databaseURL + node + ".json");
@@ -65,7 +102,7 @@ package net.sfxworks.firebaseREST
 			l.load(rq);
 		}
 		
-		public function readRealTime(node:String, auth:Boolean = false):URLStream
+		public function readRealTime(node:String, auth:Boolean = false):void
 		{
 			var header:URLRequestHeader = new URLRequestHeader("Accept", "text/event-stream");
 			
@@ -78,8 +115,54 @@ package net.sfxworks.firebaseREST
 			}
 			
 			var uRLStream:URLStream = new URLStream();
+			urlStreams.push(uRLStream);
+			eventTypes.push("unknown");
+			nodePaths.push(node);
+			uRLStream.addEventListener(ProgressEvent.PROGRESS, handleURLStreamProgress);
+			streamParts.push(new String());
 			uRLStream.load(rq);
-			return uRLStream;
+			
+		}
+		
+		private function handleURLStreamProgress(e:ProgressEvent):void 
+		{
+			var streamPartIndex:int = urlStreams.indexOf(e.target);
+			var urlStream:URLStream = urlStreams[streamPartIndex];
+			var streamPart:String = streamParts[streamPartIndex];
+			
+			var currentString:String = e.target.readUTFBytes(e.target.bytesAvailable);
+			trace(currentString.substr(0, 20));
+			if (currentString.indexOf(PROGRESS_PUT_IDENTIFIER) != -1)
+			{
+				var eventType:String = currentString.split("data:")[0];
+				eventType = eventType.split("\n")[0];
+				
+				switch(eventType)
+				{
+					case "event: put":
+						eventType = DatabaseEvent.REALTIME_PUT;
+						break;
+				}
+				
+				eventTypes[streamPartIndex] = eventType;
+				currentString = currentString.split(PROGRESS_PUT_IDENTIFIER)[1];
+			}
+			
+			streamPart += currentString;
+			streamParts[streamPartIndex] = streamPart;
+			
+			try
+			{
+				
+				var jsonObject:Object = JSON.parse(streamPart);
+				dispatchEvent(new DatabaseEvent(eventTypes[streamPartIndex], jsonObject.data, nodePaths[streamPartIndex] + String(jsonObject.path)));
+				eventTypes[streamPartIndex] = "";
+				streamParts[streamPartIndex] = "";
+			}
+			catch ( e:Error )
+			{
+				
+			}
 		}
 		
 		public function update(node:String, data:Object, auth:Boolean = false):void
