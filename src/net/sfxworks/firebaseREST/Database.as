@@ -22,7 +22,8 @@ package net.sfxworks.firebaseREST
 		private var databaseURL:String;
 		
 		public static const FIREBASE_SERVER_TIME:Object = {".sv": "timestamp"};
-		private static const PROGRESS_PUT_IDENTIFIER:String = "event: put\ndata: ";
+		private static const EVENT_IDENTIFIER:String = "event: ";
+		private static const DATA_IDENTIFIER:String = "\ndata: ";
 		
 		private var urlStreams:Vector.<URLStream>;
 		private var eventTypes:Vector.<String>;
@@ -116,6 +117,7 @@ package net.sfxworks.firebaseREST
 			
 			var uRLStream:URLStream = new URLStream();
 			urlStreams.push(uRLStream);
+			uRLStream.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
 			eventTypes.push("unknown");
 			nodePaths.push(node);
 			uRLStream.addEventListener(ProgressEvent.PROGRESS, handleURLStreamProgress);
@@ -131,21 +133,27 @@ package net.sfxworks.firebaseREST
 			var streamPart:String = streamParts[streamPartIndex];
 			
 			var currentString:String = e.target.readUTFBytes(e.target.bytesAvailable);
-			trace(currentString.substr(0, 20));
-			if (currentString.indexOf(PROGRESS_PUT_IDENTIFIER) != -1)
+			//trace(currentString.substr(0, 20));
+			if (currentString.substr(0, 7) == EVENT_IDENTIFIER)
 			{
-				var eventType:String = currentString.split("data:")[0];
+				var eventType:String = currentString.substr(7);
 				eventType = eventType.split("\n")[0];
 				
 				switch(eventType)
 				{
-					case "event: put":
-						eventType = DatabaseEvent.REALTIME_PUT;
+					case DatabaseEvent.REALTIME_PUT:
+					case DatabaseEvent.REALTIME_PATCH:
+						eventTypes[streamPartIndex] = eventType;
+						currentString = currentString.split(DATA_IDENTIFIER)[1];
 						break;
+					case DatabaseEvent.REALTIME_KEEP_ALIVE:
+					case DatabaseEvent.REALTIME_CANCEL:
+					case DatabaseEvent.REALTIME_AUTH_REVOKED:
+						dispatchEvent(new DatabaseEvent(eventType, null, nodePaths[streamPartIndex]));
+						return;
 				}
 				
-				eventTypes[streamPartIndex] = eventType;
-				currentString = currentString.split(PROGRESS_PUT_IDENTIFIER)[1];
+				
 			}
 			
 			streamPart += currentString;
@@ -158,6 +166,7 @@ package net.sfxworks.firebaseREST
 				dispatchEvent(new DatabaseEvent(eventTypes[streamPartIndex], jsonObject.data, nodePaths[streamPartIndex] + String(jsonObject.path)));
 				eventTypes[streamPartIndex] = "";
 				streamParts[streamPartIndex] = "";
+				
 			}
 			catch ( e:Error )
 			{
