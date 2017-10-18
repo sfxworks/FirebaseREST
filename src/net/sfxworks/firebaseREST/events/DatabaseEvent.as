@@ -19,6 +19,7 @@ package net.sfxworks.firebaseREST.events
 		public static const REALTIME_CANCEL:String = "cancel";
 		public static const REALTIME_AUTH_REVOKED:String = "auth_revoked";
 		
+		public static const REALTIME_PROGRESS:String = "realtimeProgress";
 		
 		private var _data:Object;
 		private var _node:String;

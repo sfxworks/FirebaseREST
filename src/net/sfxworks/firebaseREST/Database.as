@@ -170,7 +170,7 @@ package net.sfxworks.firebaseREST
 			}
 			catch ( e:Error )
 			{
-				
+				dispatchEvent(new DatabaseEvent(DatabaseEvent.REALTIME_PROGRESS, null, nodePaths[streamPartIndex]));
 			}
 		}
 		
