@@ -21,6 +21,8 @@ package net.sfxworks.firebaseREST.events
 		
 		public static const REALTIME_PROGRESS:String = "realtimeProgress";
 		
+		public static const REALTIME_FAILURE:String = "realtimeFailure";
+		
 		private var _data:Object;
 		private var _node:String;
 		

@@ -47,8 +47,9 @@ package
 			trace("Main login success.");
 			trace(e.message);
 			fBCore.database.readRealTime("", true);
-			fBCore.database.addEventListener(DatabaseEvent.REALTIME_PUT, handleRealtimePut);
-			fBCore.database.addEventListener(DatabaseEvent.REALTIME_PROGRESS, handleRealtimeProgress);
+			fBCore.database.addEventListener(DatabaseEvent.REALTIME_PUT, handleRealtimeEvent);
+			fBCore.database.addEventListener(DatabaseEvent.REALTIME_PATCH, handleRealtimeEvent);
+			//fBCore.database.addEventListener(DatabaseEvent.REALTIME_PROGRESS, handleRealtimeProgress);
 			fBCore.database.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
 		}
 		
@@ -58,9 +59,9 @@ package
 			trace("Parse part " + progressCounter + "/?");
 		}
 		
-		private function handleRealtimePut(e:DatabaseEvent):void 
+		private function handleRealtimeEvent(e:DatabaseEvent):void 
 		{
-			trace("Realtime Put.");
+			trace("Realtime " + e.type);
 			
 			trace("Path = " + e.node);
 			//trace("Data = " + JSON.stringify(e.data));

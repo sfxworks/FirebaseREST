@@ -1,7 +1,9 @@
 package net.sfxworks.firebaseREST 
 {
 	import flash.events.ProgressEvent;
+	import flash.events.TimerEvent;
 	import flash.net.URLStream;
+	import flash.utils.Timer;
 	import net.sfxworks.firebaseREST.events.DatabaseEvent;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -29,6 +31,9 @@ package net.sfxworks.firebaseREST
 		private var eventTypes:Vector.<String>;
 		private var streamParts:Vector.<String>;
 		private var nodePaths:Vector.<String>;
+		private var retrys:Vector.<int>;
+		private var numberOfRetryAttempts:Vector.<int>;
+		private var timeoutTimers:Vector.<Timer>;
 		
 		private var partCounter:int = 0;
 		
@@ -41,6 +46,9 @@ package net.sfxworks.firebaseREST
 			streamParts = new Vector.<String>();
 			eventTypes = new Vector.<String>();
 			nodePaths = new Vector.<String>();
+			retrys = new Vector.<int>();
+			numberOfRetryAttempts = new Vector.<int>();
+			timeoutTimers = new Vector.<Timer>();
 		}
 		
 		public function authChange(str:String):void
@@ -103,7 +111,7 @@ package net.sfxworks.firebaseREST
 			l.load(rq);
 		}
 		
-		public function readRealTime(node:String, auth:Boolean = false):void
+		public function readRealTime(node:String, auth:Boolean = false, retryAttempts:int=int.MAX_VALUE):void
 		{
 			var header:URLRequestHeader = new URLRequestHeader("Accept", "text/event-stream");
 			
@@ -115,15 +123,89 @@ package net.sfxworks.firebaseREST
 				rq.url += "?auth=" + authToken;
 			}
 			
-			var uRLStream:URLStream = new URLStream();
-			urlStreams.push(uRLStream);
-			uRLStream.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
-			eventTypes.push("unknown");
-			nodePaths.push(node);
-			uRLStream.addEventListener(ProgressEvent.PROGRESS, handleURLStreamProgress);
-			streamParts.push(new String());
-			uRLStream.load(rq);
+			var uRLStream:URLStream;
 			
+			
+			if (nodePaths.indexOf(node) == -1)
+			{
+				uRLStream = new URLStream();
+				uRLStream.addEventListener(IOErrorEvent.IO_ERROR, handleURLStreamIOError);
+				uRLStream.addEventListener(ProgressEvent.PROGRESS, handleURLStreamProgress);
+				var timeoutTimer:Timer = new Timer(30000, 1);
+				timeoutTimer.addEventListener(TimerEvent.TIMER_COMPLETE, handleURLStreamTimeout);
+				timeoutTimer.start();
+				timeoutTimers.push(timeoutTimer);
+				urlStreams.push(uRLStream);
+				retrys.push(retryAttempts);
+				numberOfRetryAttempts.push(0);
+				eventTypes.push("unknown");
+				nodePaths.push(node);
+				streamParts.push("");
+			}
+			else
+			{
+				var streamPartIndex:int = nodePaths.indexOf(node);
+				numberOfRetryAttempts[streamPartIndex]++;
+				uRLStream = urlStreams[streamPartIndex];
+				timeoutTimers[streamPartIndex].reset();
+				timeoutTimers[streamPartIndex].start();
+				eventTypes[streamPartIndex] = "";
+				streamParts[streamPartIndex] = "";
+			}
+			
+			uRLStream.load(rq);
+		}
+		
+		private function handleURLStreamTimeout(e:TimerEvent):void 
+		{
+			trace("URLStream Timeout");
+			
+			var streamPartIndex:int = timeoutTimers.indexOf(e.currentTarget);
+			attemptReconnect(streamPartIndex);
+		}
+		
+		
+		private function handleURLStreamIOError(e:IOErrorEvent):void 
+		{
+			dispatchEvent(e);
+			dispatchEvent(new DatabaseEvent(DatabaseEvent.REALTIME_FAILURE, null, nodePaths[streamPartIndex]))
+			
+			trace("URLStream io error.");
+			var streamPartIndex:int = urlStreams.indexOf(e.currentTarget);
+			attemptReconnect(streamPartIndex);
+			
+		}
+		
+		private function attemptReconnect(streamPartIndex:int):void
+		{
+			var retryMax:int = retrys[streamPartIndex];
+			var numberOfAttempts:int = numberOfRetryAttempts[streamPartIndex];
+			
+			if (retryMax > numberOfAttempts)
+			{
+				trace("Retrying..");
+				//Retry again.
+				readRealTime(nodePaths[streamPartIndex], true, retrys[streamPartIndex]);
+			}
+			else
+			{
+				trace("Remvong stream.");
+				//Remove stream.
+				timeoutTimers[streamPartIndex].stop();
+				timeoutTimers[streamPartIndex].removeEventListener(TimerEvent.TIMER_COMPLETE, handleURLStreamTimeout);
+				urlStreams[streamPartIndex].removeEventListener(IOErrorEvent.IO_ERROR, handleURLStreamIOError);
+				urlStreams[streamPartIndex].close();
+				
+				dispatchEvent(new DatabaseEvent(DatabaseEvent.REALTIME_FAILURE, null, nodePaths[streamPartIndex]))
+				
+				urlStreams[streamPartIndex] = null;
+				eventTypes[streamPartIndex] = null;
+				streamParts[streamPartIndex] = null;
+				nodePaths[streamPartIndex] = null;
+				retrys[streamPartIndex] = null;
+				numberOfRetryAttempts[streamPartIndex] = null;
+				timeoutTimers[streamPartIndex] = null;
+			}
 		}
 		
 		private function handleURLStreamProgress(e:ProgressEvent):void 
@@ -131,6 +213,9 @@ package net.sfxworks.firebaseREST
 			var streamPartIndex:int = urlStreams.indexOf(e.target);
 			var urlStream:URLStream = urlStreams[streamPartIndex];
 			var streamPart:String = streamParts[streamPartIndex];
+			numberOfRetryAttempts[streamPartIndex] = 0;
+			timeoutTimers[streamPartIndex].reset();
+			timeoutTimers[streamPartIndex].start();
 			
 			var currentString:String = e.target.readUTFBytes(e.target.bytesAvailable);
 			//trace(currentString.substr(0, 20));
