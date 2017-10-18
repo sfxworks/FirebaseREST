@@ -25,12 +25,12 @@ package net.sfxworks.firebaseREST.events
 		
 		public override function clone():Event 
 		{ 
-			return new AuthEvent(_message, type, bubbles, cancelable);
+			return new AuthEvent(type, _message, bubbles, cancelable);
 		} 
 		
 		public override function toString():String 
 		{ 
-			return formatToString("FBAuthEvent", "type", "message", "bubbles", "cancelable", "eventPhase"); 
+			return formatToString("type", "message", "bubbles", "cancelable", "eventPhase"); 
 		}
 		
 		public function get message():String 
