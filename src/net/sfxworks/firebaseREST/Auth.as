@@ -94,6 +94,7 @@ package net.sfxworks.firebaseREST
 		{
 			e.target.removeEventListener(Event.COMPLETE, signInComplete);
 			
+			dispatchEvent(new AuthEvent(AuthEvent.OPERATION_COMPLETE, e.currentTarget.data));
 			_session = new Session(JSON.parse(e.currentTarget.data));
 			setupSessionTimer();
 		}
@@ -101,7 +102,8 @@ package net.sfxworks.firebaseREST
 		private function setupSessionTimer():void
 		{
 			var t:Timer = new Timer(_session.expiration * 1000);
-			t.addEventListener(TimerEvent.TIMER, refreshAccessToken);
+			t.addEventListener(TimerEvent.TIMER, sessionTimer);
+			t.start();
 			refreshAccessToken();
 		}
 		
