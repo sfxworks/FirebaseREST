@@ -36,12 +36,12 @@ package net.sfxworks.firebaseREST
 		}
 		
 		//Populated file reference.
-		public function upload(fileReference:FileReference, contentType:String, location:String, name:String=null, auth:Boolean = false):void
+		public function upload(fileReference:ByteArray, contentType:String, location:String, name:String=null, auth:Boolean = false):void
 		{
 			var rqStr:String = new String();
 			if (name == null)
 			{
-				rqStr = storageURL + location + fileReference.name;
+				rqStr = storageURL + location;
 			}
 			else
 			{
@@ -49,7 +49,7 @@ package net.sfxworks.firebaseREST
 			}
 			var rq:URLRequest = new URLRequest(rqStr);
 			rq.method = URLRequestMethod.POST;
-			rq.data = fileReference.data;
+			rq.data = fileReference;
 			rq.contentType = contentType;
 			
 			if (auth)
