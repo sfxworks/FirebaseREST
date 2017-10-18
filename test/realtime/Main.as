@@ -18,13 +18,16 @@ package
 	{
 		private var fBCore:Core;
 		private var rtsc:URLStream;
+		private var progressCounter:int;
 		
 		public function Main() 
 		{
 			super();
-			
+			progressCounter = 0;
 			fBCore = new Core();
 			fBCore.init("key", "pname");
+			fBCore.database.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
+			
 			trace("Init");
 			fBCore.auth.addEventListener(AuthEvent.LOGIN_SUCCES, hanldeFBSuccess);
 			fBCore.auth.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
@@ -35,14 +38,24 @@ package
 		private function handleIOError(e:IOErrorEvent):void 
 		{
 			trace("IOError");
+			trace(e.text);
+			trace(e.errorID);
 		}
 		
 		private function hanldeFBSuccess(e:AuthEvent):void 
 		{
 			trace("Main login success.");
 			trace(e.message);
-			fBCore.database.readRealTime("stores", true);
+			fBCore.database.readRealTime("", true);
 			fBCore.database.addEventListener(DatabaseEvent.REALTIME_PUT, handleRealtimePut);
+			fBCore.database.addEventListener(DatabaseEvent.REALTIME_PROGRESS, handleRealtimeProgress);
+			fBCore.database.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
+		}
+		
+		private function handleRealtimeProgress(e:DatabaseEvent):void 
+		{
+			progressCounter++;
+			trace("Parse part " + progressCounter + "/?");
 		}
 		
 		private function handleRealtimePut(e:DatabaseEvent):void 
@@ -50,7 +63,7 @@ package
 			trace("Realtime Put.");
 			
 			trace("Path = " + e.node);
-			trace("Data = " + JSON.stringify(e.data));
+			//trace("Data = " + JSON.stringify(e.data));
 		}
 		
 		
