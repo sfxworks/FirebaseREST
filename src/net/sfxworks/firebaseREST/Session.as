@@ -21,7 +21,7 @@ package net.sfxworks.firebaseREST
 			_refreshToken = newSession.refreshToken;
 			_email = newSession.email;
 			_displayName = newSession.displayName;
-			_expiration = newSession.expires_in;
+			_expiration = newSession.expiresIn;
 			_idToken = newSession.id_token;
 			_registered = newSession.registered;
 			
