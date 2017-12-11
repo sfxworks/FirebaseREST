@@ -85,7 +85,11 @@ package net.sfxworks.firebaseREST
 			rq.cacheResponse = false;
 			if (auth)
 			{
-				rq.url += "?auth=" + authToken;
+				rq.url += "?auth=" + authToken + "&shallow=" + shallow.toString();
+			}
+			else
+			{
+				rq.url += "?shallow=" + shallow.toString();
 			}
 			var l:URLLoader = new URLLoader();
 			l.addEventListener(Event.COMPLETE, dataReadOnce);
