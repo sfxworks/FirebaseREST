@@ -59,6 +59,8 @@ package net.sfxworks.firebaseREST
 		public function read(node:String, auth:Boolean=false):void
 		{
 			var rq:URLRequest = new URLRequest(databaseURL + node + ".json");
+			rq.useCache = false;
+			rq.cacheResponse = false;
 			if (auth)
 			{
 				rq.url += "?auth=" + authToken;
@@ -70,7 +72,7 @@ package net.sfxworks.firebaseREST
 			l.load(rq);
 		}
 		
-		public function once(node:String, callback:Function, auth:Boolean = false):void
+		public function once(node:String, callback:Function, auth:Boolean = false, shallow:Boolean=false):void
 		{
 			function dataReadOnce(e:Event):void 
 			{
@@ -79,6 +81,8 @@ package net.sfxworks.firebaseREST
 				callback(JSON.parse(e.target.data));
 			}
 			var rq:URLRequest = new URLRequest(databaseURL + node + ".json");
+			rq.useCache = false;
+			rq.cacheResponse = false;
 			if (auth)
 			{
 				rq.url += "?auth=" + authToken;
@@ -97,6 +101,8 @@ package net.sfxworks.firebaseREST
 		public function write(node:String, data:Object, auth:Boolean = false):void
 		{
 			var rq:URLRequest = new URLRequest(databaseURL + node + ".json");
+			rq.useCache = false;
+			rq.cacheResponse = false;
 			rq.data = JSON.stringify(data);
 			rq.method = URLRequestMethod.POST;
 			
@@ -117,6 +123,8 @@ package net.sfxworks.firebaseREST
 			
 			var rq:URLRequest = new URLRequest(databaseURL + node + ".json");
 			rq.requestHeaders.push(header);
+			rq.useCache = false;
+			rq.cacheResponse = false;
 			
 			if (auth)
 			{
@@ -267,6 +275,8 @@ package net.sfxworks.firebaseREST
 			rq.data = JSON.stringify(data);
 			rq.method = URLRequestMethod.POST;
 			rq.requestHeaders.push(header);
+			rq.useCache = false;
+			rq.cacheResponse = false;
 			
 			if (auth)
 			{
@@ -286,6 +296,8 @@ package net.sfxworks.firebaseREST
 			var rq:URLRequest = new URLRequest(databaseURL + node + ".json");
 			rq.method = URLRequestMethod.POST;
 			rq.requestHeaders.push(header);
+			rq.useCache = false;
+			rq.cacheResponse = false;
 			
 			if (auth)
 			{
